@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#compose-form').addEventListener('submit', send_email);
 
+
   // By default, load the inbox
   load_mailbox('inbox');
 });
@@ -32,10 +33,45 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+   // Request the emails for a particular mailbox
+   fetch(`/emails/${mailbox}`)
+   .then(response => response.json())
+   .then(emails => {
+     // Show each email in the mailbox
+     emails.forEach(email => {
+      console.log(email);
+      const element = document.createElement('div');
+      element.className = "list-group-item list-group-item-action";
+      element.style.cssText = "display:flex; margin:auto; gap:70px; height:45px";
+      
+      // Style the email inbox/sent list items
+      element.innerHTML = `
+
+            <h6 style="color:black;">${email.sender}</h6>
+            <p style="color:black;">${email.subject}</p>
+            <p class="text-muted" style="font-size:12px; margin-left: auto">${email.timestamp}<p>
+
+      `;
+      console.log(email.read)
+      if (email.read === false) {
+        element.classList.add('bg-light')
+      }
+
+
+      element.addEventListener('click', function() {
+          console.log('This element has been clicked!')
+      });
+      document.querySelector('#emails-view').append(element);
+     });
+
+ });
 }
 
-function send_email(mail) {
+ 
 
+function send_email(event) {
+  event.preventDefault();
   const recipient = document.querySelector("#compose-recipients").value;
   const subject = document.querySelector("#compose-subject").value;
   const body = document.querySelector("#compose-body").value;
@@ -52,5 +88,6 @@ function send_email(mail) {
   .then(result => {
       // Print result
       console.log(result);
+      load_mailbox('sent');
   });
 }
